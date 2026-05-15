@@ -465,35 +465,7 @@ ros2 topic info /cmd_vel
 
 <br>
 
-### 2. YOLO 인식은 되지만 TurtleBot3가 바로 움직이지 않는 문제
-
-* **Issue:** 키보드가 카메라에 보이지만 TurtleBot3가 바로 움직이지 않음
-* **Cause:** 순간적인 오인식을 방지하기 위해 2초 이상 안정적으로 인식된 뒤 추적하도록 설계
-* **Solution:** 키보드를 카메라 화면에 2초 이상 안정적으로 보여준 뒤 테스트
-
-관련 설정:
-
-```python
-self.required_detection_time = 2.0
-```
-
-<br>
-
-### 3. 키보드가 화면 가장자리에 있을 때 전진하지 않는 문제
-
-* **Issue:** 키보드가 인식되었지만 TurtleBot3가 전진하지 않고 회전만 함
-* **Cause:** 키보드가 화면 중심에서 너무 벗어난 상태에서 전진하면 충돌 위험이 있어 전진/후진을 막고 회전만 하도록 설계
-* **Solution:** `forward_block_error` 값을 조절하거나 카메라 방향을 보정
-
-관련 설정:
-
-```python
-self.forward_block_error = 220
-```
-
-<br>
-
-### 4. OCR에서 숫자나 이상한 문자가 인식되는 문제
+### 2. OCR에서 숫자나 이상한 문자가 인식되는 문제
 
 * **Issue:** `9`, `1` 또는 의미 없는 문자가 OCR 결과로 출력됨
 * **Cause:** 글자 크기, 조명, 초점, 배경 대비 문제로 OCR 신뢰도가 낮아짐
@@ -512,7 +484,7 @@ self.min_score = 0.40
 
 <br>
 
-### 5. OCR 실행 시 영상이 느려지는 문제
+### 3. OCR 실행 시 영상이 느려지는 문제
 
 * **Issue:** OCR 처리 중 프레임이 끊기거나 반응이 느려짐
 * **Cause:** EasyOCR은 연산량이 커서 매 프레임 수행하면 속도가 느려질 수 있음
@@ -523,7 +495,44 @@ self.min_score = 0.40
 ```python
 self.ocr_interval_frames = 10
 ```
+<br>
 
+### 4. PID 제어 미적용으로 인한 미세 움직임 문제
+
+* **Issue:** YOLO가 키보드 객체를 정상적으로 인식했지만, TurtleBot3가 목표 위치에 도달한 뒤에도 미세하게 계속 움직이는 문제가 발생했습니다.
+* **Cause:** 초기 제어 방식에서는 객체가 화면 중심에 있는지, Bounding Box 면적이 목표 거리와 가까운지만 단순 조건문으로 판단했습니다. 이 방식은 카메라 영상의 작은 흔들림, YOLO Bounding Box 좌표 변화, 조명 변화에 따른 인식 오차에도 바로 속도 명령이 바뀌기 때문에 TurtleBot3가 정지하지 못하고 계속 조금씩 움직이는 현상이 발생했습니다.
+* **Solution:** 단순 조건 기반 제어 대신 PID 제어를 추가하여 화면 중심 오차와 Bounding Box 면적 오차를 연속적으로 계산하도록 개선했습니다.
+  * 화면 중심과 키보드 중심의 차이인 `error_x`를 기준으로 회전 PID 제어 적용
+  * 목표 Bounding Box 면적과 현재 객체 면적의 차이인 `area_error`를 기준으로 거리 PID 제어 적용
+  * 중심 허용 오차(`center_tolerance`)와 거리 허용 오차(`area_tolerance`) 안에 들어오면 PID 값을 reset하고 정지
+  * 최대 선속도와 각속도를 제한하여 급격한 움직임 방지
+
+관련 설정:
+
+```python
+self.center_tolerance = 50
+self.area_tolerance = 5000
+
+self.max_linear_speed = 0.06
+self.max_reverse_speed = -0.04
+self.max_angular_speed = 0.25
+
+self.angular_pid = PID(
+    kp=0.0014,
+    ki=0.0,
+    kd=0.00025,
+    output_limit=self.max_angular_speed,
+    integral_limit=3000.0
+)
+
+self.linear_pid = PID(
+    kp=0.0000020,
+    ki=0.0,
+    kd=0.0000004,
+    output_limit=self.max_linear_speed,
+    integral_limit=200000.0
+)
+```
 <br>
 
 ## ✅ 10. Result (결과)
@@ -535,6 +544,7 @@ self.ocr_interval_frames = 10
 * EasyOCR을 이용해 한글 명령어를 인식하고 TurtleBot3를 전진, 후진, 좌회전, 우회전, 정지시킬 수 있었습니다.
 * ROS2 Jazzy TurtleBot3 환경에 맞게 `/cmd_vel` 메시지 타입을 `TwistStamped`로 적용했습니다.
 * 객체 미탐지, 명령어 미검출, OCR timeout 상황에서 TurtleBot3가 자동 정지하도록 안전 로직을 추가했습니다.
+* PID 제어를 적용한 뒤 객체가 화면 중앙과 목표 거리 근처에 위치했을 때 TurtleBot3가 불필요하게 떨리거나 계속 움직이는 문제가 줄어들었고, 키보드 객체를 더 부드럽고 안정적으로 추적할 수 있었습니다. 
 
 <br>
 
