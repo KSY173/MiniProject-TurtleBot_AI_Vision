@@ -408,6 +408,7 @@ EasyOCR을 이용해 한글 명령어를 인식하고 TurtleBot3를 제어하는
 ### `index.html`
 
 카메라 스트리밍 화면을 웹 브라우저에서 확인하기 위한 HTML 템플릿입니다.
+해당 파일은 제가 직접 작성한 코드가 아니라, **PinkLAB에서 제공한 pinkwink GitHub 예제 코드**를 그대로 사용했습니다.
 
 주요 기능:
 
@@ -415,6 +416,11 @@ EasyOCR을 이용해 한글 명령어를 인식하고 TurtleBot3를 제어하는
 * 웹 페이지 기반 카메라 확인
 * TurtleBot3 카메라 영상 모니터링용 화면 구성
 
+사용한 원본 경로:
+
+```text
+RPi Study/flask_tutorials/templates/index.html
+```
 <br>
 
 ## ⚙️ 8. Control Logic (제어 로직)
