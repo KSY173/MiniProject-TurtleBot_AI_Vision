@@ -27,7 +27,6 @@ class OCRRobotController(Node):
         print("Loading EasyOCR...")
 
         # 한글 명령어 인식용
-        # 필요하면 ['ko', 'en'] 으로 바꿔도 됨
         self.reader = easyocr.Reader(['ko'])
 
         print("EasyOCR loaded.")
@@ -59,21 +58,14 @@ class OCRRobotController(Node):
         # =========================================================
         # 5. OCR 안정화 설정
         # =========================================================
-
-        # 너무 낮은 OCR 점수는 무시
-        # 기존 결과에서 TEXT: 9 | SCORE: 0.13 처럼 낮은 점수가 나왔으므로
-        # 이런 오인식은 명령어 판단에서 제외
         self.min_score = 0.40
 
-        # OCR은 매 프레임 돌리면 느릴 수 있으므로 N프레임마다 한 번만 수행
         self.ocr_interval_frames = 10
         self.frame_count = 0
 
-        # 마지막으로 인식된 명령 저장
         self.last_command = "STOP"
         self.last_command_time = time.time()
 
-        # 명령이 오래 안 보이면 자동 정지
         self.command_timeout = 1.0
 
     # =============================================================
@@ -100,13 +92,10 @@ class OCRRobotController(Node):
     # OCR용 전처리
     # =============================================================
     def preprocess_frame(self, frame):
-        # OCR 속도를 위해 크기 줄이기
         frame = cv2.resize(frame, (640, 480))
 
-        # 회색조 변환
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        # 글자 대비 향상
         gray = cv2.GaussianBlur(gray, (3, 3), 0)
 
         return gray
@@ -122,7 +111,6 @@ class OCRRobotController(Node):
 
             print(f"TEXT: {text} | SCORE: {score:.2f}")
 
-            # 점수가 너무 낮으면 무시
             if score < self.min_score:
                 continue
 
@@ -215,7 +203,6 @@ class OCRRobotController(Node):
                     self.execute_command(command)
 
                 else:
-                    # 명령어가 인식되지 않으면 정지
                     self.last_command = "STOP"
                     self.last_command_time = time.time()
                     self.stop_robot()
