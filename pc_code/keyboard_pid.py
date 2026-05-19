@@ -54,7 +54,6 @@ class PID:
 
         output = p + i + d
 
-        # 출력 제한
         if output > self.output_limit:
             output = self.output_limit
         elif output < -self.output_limit:
@@ -124,14 +123,6 @@ class KeyboardFollower(Node):
         # ---------------------------------------------------------
         # 거리 제어 기준
         # ---------------------------------------------------------
-        # 기존 코드:
-        # target_box_area = 45000
-        # too_close_box_area = 70000
-        #
-        # PID에서는 중간값을 목표 거리로 둠
-        # area가 작으면 멀다 -> 전진
-        # area가 크면 가깝다 -> 후진
-        # ---------------------------------------------------------
         self.target_box_area = 55000
 
         # 거리 허용 오차
@@ -140,10 +131,6 @@ class KeyboardFollower(Node):
         # =========================================================
         # 6. PID 객체 생성
         # =========================================================
-        # 회전 PID
-        # error_x > 0이면 키보드가 오른쪽에 있음
-        # TurtleBot은 angular.z 음수일 때 오른쪽 회전
-        # 그래서 나중에 - 부호를 붙여서 사용함
         self.angular_pid = PID(
             kp=0.0014,
             ki=0.0,
@@ -152,10 +139,6 @@ class KeyboardFollower(Node):
             integral_limit=3000.0
         )
 
-        # 거리 PID
-        # area_error = target_box_area - box_area
-        # area_error > 0이면 키보드가 멀다 -> 전진
-        # area_error < 0이면 키보드가 가깝다 -> 후진
         self.linear_pid = PID(
             kp=0.0000020,
             ki=0.0,
@@ -344,8 +327,6 @@ class KeyboardFollower(Node):
                     else:
                         angular_output = self.angular_pid.update(error_x)
 
-                        # error_x > 0이면 키보드가 오른쪽
-                        # 오른쪽으로 돌려야 하므로 angular.z는 음수
                         angular_z = -angular_output
 
                         angular_z = self.clamp(
@@ -367,7 +348,6 @@ class KeyboardFollower(Node):
                     else:
                         linear_x = self.linear_pid.update(area_error)
 
-                        # 전진/후진 속도 제한
                         linear_x = self.clamp(
                             linear_x,
                             self.max_reverse_speed,
