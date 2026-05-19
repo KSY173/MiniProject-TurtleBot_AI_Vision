@@ -43,6 +43,9 @@ EasyOCR을 이용해 한글 명령어를 인식하고, 인식된 명령어에 �
 
 ## 📌 1. Project Overview (프로젝트 개요)
 
+### 프로젝트 기간
+2026.05.13 ~ 2026.05.14
+
 * **Robot Platform:** TurtleBot3
 * **SBC:** Raspberry Pi 5
 * **ROS Version:** ROS2 Jazzy
