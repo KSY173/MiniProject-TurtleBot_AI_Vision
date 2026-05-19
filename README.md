@@ -21,6 +21,26 @@ TurtleBot3 기본 구동을 위한 bringup은 직접 작성한 코드가 아니�
 
 <br>
 
+## 🎥 Demo GIF
+
+본 프로젝트의 시연 영상은 GitHub README에서 바로 확인할 수 있도록 GIF 형식으로 첨부했습니다.
+
+### ⌨️ YOLOv11 Keyboard Tracking Demo
+
+YOLOv11을 이용해 카메라 영상 속 키보드 객체를 인식하고, PID 제어를 적용하여 TurtleBot3가 키보드를 부드럽게 추적하는 시연입니다.
+
+![YOLO Keyboard Tracking](./gif/keyboard_tracking.gif)
+
+<br>
+
+### 🔤 EasyOCR Command Detection Demo
+
+EasyOCR을 이용해 한글 명령어를 인식하고, 인식된 명령어에 따라 TurtleBot3가 전진, 후진, 좌회전, 우회전, 정지 동작을 수행하는 시연입니다.
+
+![OCR Command Detection](./gif/ocr_detect.gif)
+
+<br>
+
 ## 📌 1. Project Overview (프로젝트 개요)
 
 * **Robot Platform:** TurtleBot3
